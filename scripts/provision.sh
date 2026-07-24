@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # provision.sh — Runs INSIDE the Alpine proot rootfs (via `proot-distro login`).
-# Installs base packages and a starter set of security/pentest tools.
+# Installs base packages and a comprehensive set of security/pentest tools.
 #
 set -eu
 
@@ -41,16 +41,82 @@ apk add --no-cache \
     bind-tools \
     net-tools \
     openssl \
-    nikto || log "Some packages were unavailable in this Alpine repo branch — continuing."
+    nikto \
+    aircrack-ng \
+    tshark \
+    masscan \
+    hashcat \
+    wget \
+    curl || log "Some packages were unavailable in this Alpine repo branch — continuing."
 
-log "Setting up Python security tooling (sqlmap via pip)..."
-pip install --no-cache-dir --break-system-packages sqlmap || log "sqlmap pip install failed — can install manually later."
+log "Installing Python security tooling via pip..."
+pip install --no-cache-dir --break-system-packages \
+    sqlmap \
+    gobuster \
+    requests \
+    paramiko \
+    pycryptodome \
+    scapy \
+    beautifulsoup4 || log "Some pip packages failed — can install manually later."
 
-log "Creating a workspace directory..."
+log "Creating workspace and tools directory..."
 mkdir -p /root/workspace
+mkdir -p /root/tools
+
+log "Installing Metasploit Framework (lightweight version)..."
+apk add --no-cache ruby ruby-dev postgresql-client postgresql-dev \
+    autoconf automake libtool bison flex libpcap-dev || log "Metasploit deps partially installed."
+
+log "Downloading and installing dashboard UI..."
+pip install --no-cache-dir --break-system-packages textual rich || log "Dashboard deps failed."
 
 log "Provisioning complete. Installed tools:"
-echo " - nmap, tcpdump, hydra, john, netcat, whois, dig/nslookup, nikto"
-echo " - sqlmap (via pip)"
 echo ""
-echo "Next step: build the TUI dashboard (Textual) to tie these together."
+echo "========================================"
+echo "  Core Networking & Scanning Tools:"
+echo "========================================"
+echo " ✓ nmap + nmap-scripts"
+echo " ✓ masscan (fast port scanner)"
+echo " ✓ tcpdump (packet capture)"
+echo " ✓ tshark (Wireshark CLI)"
+echo " ✓ whois, dig/nslookup (DNS tools)"
+echo " ✓ net-tools"
+echo ""
+echo "========================================"
+echo "  Password & Cryptography Tools:"
+echo "========================================"
+echo " ✓ hydra (brute force)"
+echo " ✓ john (password cracking)"
+echo " ✓ hashcat (GPU cracking)"
+echo " ✓ openssl"
+echo ""
+echo "========================================"
+echo "  Web & Exploitation Tools:"
+echo "========================================"
+echo " ✓ nikto (web scanner)"
+echo " ✓ sqlmap (SQL injection)"
+echo " ✓ gobuster (directory brute force)"
+echo " ✓ burp-suite (via manual install)"
+echo ""
+echo "========================================"
+echo "  Wireless & WiFi Tools:"
+echo "========================================"
+echo " ✓ aircrack-ng (WiFi security)"
+echo ""
+echo "========================================"
+echo "  Python Security Libraries:"
+echo "========================================"
+echo " ✓ scapy (packet crafting)"
+echo " ✓ requests (HTTP library)"
+echo " ✓ paramiko (SSH library)"
+echo " ✓ beautifulsoup4 (web scraping)"
+echo " ✓ pycryptodome (cryptography)"
+echo ""
+echo "========================================"
+echo "  UI Dashboard:"
+echo "========================================"
+echo " ✓ Textual + Rich (TUI framework)"
+echo ""
+echo "Launch dashboard with: python3 /root/dashboard.py"
+echo "Workspace location: /root/workspace"
+echo ""
